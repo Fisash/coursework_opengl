@@ -1,1 +1,1 @@
-g++ -Os -s -flto src/main.cpp src/shader.cpp src/window.cpp -o main.exe -I./include -DGLEW_STATIC lib/glew32s.lib lib/libglfw3.a -lopengl32 -lgdi32 -lglu32 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -pthread
+g++ -Os -s -flto src/main.cpp src/shader.cpp src/window.cpp src/impls.cpp src/texture.cpp -o main.exe -I./include -DGLEW_STATIC lib/glew32s.lib lib/libglfw3.a -lopengl32 -lgdi32 -lglu32 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -pthread
