@@ -2,6 +2,10 @@
 #include <GL/glew.h>    // GLEW
 #include <GLFW/glfw3.h> // GLFW
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "window.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
@@ -16,9 +20,13 @@ int main() {
         out vec3 ourColor;
         out vec2 TexCoord;
 
+        uniform mat4 model;
+        uniform mat4 view;
+        uniform mat4 projection;
+
         void main()
         {
-            gl_Position = vec4(aPos, 1.0);
+            gl_Position = projection * view * model * vec4(aPos, 1.0);
             ourColor = aColor;
             TexCoord = aTexCoord;
         })";
@@ -33,14 +41,51 @@ int main() {
             FragColor = texture(ourTexture, TexCoord) * vec4(ourColor, 1.0);
         })";
 
-    Window window(800, 600, "OpenGL + GLEW");
+    Window window(1000, 1000, "goida");
 
-    float vertices[] = {
-        // positions          // colors           // texture coords
-        0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,   // top right
-        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,   // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f    // top left 
+   float vertices[] = {
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.5f, 1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.5f, 0.0f, 1.0f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.5f, 1.0f, 1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.5f, 0.0f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,  1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+
+        // Верхняя грань (голубой)
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.0f, 1.0f
     };
 
     unsigned int indices[] = {
@@ -81,10 +126,27 @@ int main() {
     glEnableVertexAttribArray(2);
 
     testTex.bind();
-    // Главный цикл
+
+    glm::mat4 view = glm::mat4(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.5f)); 
+        
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(35.0f), 900.0f / 600.0f, 0.15f, 100.0f);
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
+
     while (!window.shouldClose()) {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+
+        
+        shader.setMat4("model", model);
+
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         window.swapBuffers();
         window.pollEvents();

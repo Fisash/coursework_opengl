@@ -6,7 +6,7 @@ Texture::Texture(const char* source, GLenum wrap, GLenum filter){
     int width, height, nrChannels;
     unsigned char* data = stbi_load(source, &width, &height, &nrChannels, 0);
     if (!data) {
-        throw std::runtime_error("Texture loading falled (file not found): " + std::string(source));
+        throw std::runtime_error("Texture loading falled (no data): " + std::string(source));
     }
     glGenTextures(1, &ID);
     glBindTexture(GL_TEXTURE_2D, ID);
@@ -16,7 +16,8 @@ Texture::Texture(const char* source, GLenum wrap, GLenum filter){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    GLenum format = nrChannels == 4 ? GL_RGBA : GL_RGB;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);

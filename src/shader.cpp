@@ -40,3 +40,8 @@ Shader::Shader(const char* vertexSource, const char* fragmentSource) {
 }
 
 void Shader::use() const { glUseProgram(programID); }
+
+void Shader::setMat4(const char* name, glm::mat4 mat){
+    int modelLoc = glGetUniformLocation(programID, name);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mat));
+}
