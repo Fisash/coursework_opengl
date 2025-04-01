@@ -14,11 +14,11 @@ int main() {
     
     const char* vertexShaderSource =  R"(#version 330 core
         layout (location = 0) in vec3 aPos;
-        layout (location = 1) in vec3 aColor;
-        layout (location = 2) in vec2 aTexCoord;
+        layout (location = 1) in vec2 aTexCoord;
 
-        out vec3 ourColor;
         out vec2 TexCoord;
+
+        out vec3 vPos;
 
         uniform mat4 model;
         uniform mat4 view;
@@ -27,69 +27,72 @@ int main() {
 
         void main()
         {
-            gl_Position = projection * view * model * vec4(aPos, 1.0);
-            ourColor = aColor;
+            vec4 viewPos = view * model * vec4(aPos, 1.0);
+            vPos = viewPos.xyz;
+            gl_Position = projection * viewPos;
             TexCoord = aTexCoord;
         })";
 
-    const char* fragmentShaderSource =  R"(#version 330 core
-        in vec3 ourColor;     
+    const char* fragmentShaderSource =  R"(#version 330 core    
         in vec2 TexCoord;  
+        in vec3 vPos;
         uniform sampler2D ourTexture;
 
         uniform float time;
 
         out vec4 FragColor;
-
+ 
         void main() {
-            FragColor = texture(ourTexture, TexCoord*(cos(2*time)+1.1f)) * vec4(ourColor, 1.0) *2*(sin(15*time)+1.3f);
+            float distance = length(vPos);
+            float brightness = clamp(distance / 3.5, 0.0, 1.0);
+            brightness = 1.0 - brightness;
+            FragColor = texture(ourTexture, TexCoord)*brightness;
         })";
 
     Window window(1000, 1000, "goida");
 
    float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f, 0.5f, 1.0f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.5f, 1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.5f, 1.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.5f, 0.0f, 1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.5f, 0.0f, 1.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
 
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 0.5f, 1.0f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, 0.5f, 1.0f,  0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f, 0.5f, 1.0f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.5f, 0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.5f, 0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.5f, 0.5f,  1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
 
-        // Верхняя грань (голубой)
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f
     };
 
     unsigned int indices[] = {
@@ -100,7 +103,7 @@ int main() {
     Shader shader(vertexShaderSource, fragmentShaderSource);
     shader.use();
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
     glEnable(GL_DEPTH_TEST);
 
     Texture testTex("data\\tex.jpg");
@@ -120,14 +123,11 @@ int main() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
 
     testTex.bind();
 
@@ -136,18 +136,20 @@ int main() {
         
     shader.setMat4("view", view);
 
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.15f, 100.0f);
+
+    shader.setMat4("projection", projection);
+
     while (!window.shouldClose()) {
         float time = (float)glfwGetTime();
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, time * glm::radians(210.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
         shader.setFloat("time", time);
         shader.setMat4("model", model);
 
-        glm::mat4 projection;
-        projection = glm::perspective(glm::radians((glm::sin(time)+1.8f)*35.0f), 900.0f / 600.0f, (glm::sin(time)+1.05f)*0.3f, 100.0f);
-
-        shader.setMat4("projection", projection);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
