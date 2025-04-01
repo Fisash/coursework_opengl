@@ -45,3 +45,8 @@ void Shader::setMat4(const char* name, glm::mat4 mat){
     int modelLoc = glGetUniformLocation(programID, name);
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mat));
 }
+
+void Shader::setFloat(const char* name, float val){
+    int floatLoc = glGetUniformLocation(programID, name);
+    glUniform1f(floatLoc, val);
+}
