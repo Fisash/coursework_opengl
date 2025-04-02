@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <iostream>
 #include "window.hpp"
+#include "input.hpp"
 
 #define MAJOR_VERSION 4
 #define MINOR_VERSION 6 
@@ -22,6 +23,8 @@ Window::Window(int w, int h, const char* t) : width(w), height(h), title(t)
     }
 
     glfwMakeContextCurrent(window);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
+    Input::setWindow(this);
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
@@ -52,4 +55,8 @@ void Window::pollEvents() {
 void Window::getVersion(int& major, int& minor){
     glGetIntegerv(GL_MAJOR_VERSION, &major);
     glGetIntegerv(GL_MINOR_VERSION, &minor);
+}
+
+GLFWwindow* Window::getGLFWWindowPtr(){
+    return window;
 }

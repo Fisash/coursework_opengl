@@ -18,4 +18,5 @@ public:
     void swapBuffers();
     void pollEvents();
     void getVersion(int& major, int& minor);
+    GLFWwindow* getGLFWWindowPtr();
 };

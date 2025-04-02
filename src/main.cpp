@@ -10,6 +10,8 @@
 #include "shader.hpp"
 #include "texture.hpp"
 #include "camera.hpp"
+#include "input.hpp"
+
 
 int main() {
     
@@ -117,37 +119,57 @@ int main() {
     glEnableVertexAttribArray(1);
 
     testTex.bind();
-    Camera mainCamera(glm::vec3(0.0f, 0.0f, -3.0f));
+    Camera mainCamera(glm::vec3(0.0f, 0.0f, -5.0f));
 
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::rotate(model, 45.0f, glm::vec3(0.5f, 1.0f, 1.0f));
-    shader.setMat4("model", model);
+    glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
+    glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);
 
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.15f, 100.0f);
 
     shader.setMat4("projection", projection);
 
+    float lastFrameTime = 0.0f;
+    float deltaTime = 0.0f;
+
+    float speed = 2.0f;
     while (!window.shouldClose()) {
         float time = (float)glfwGetTime();
+        deltaTime = time - lastFrameTime;
+        lastFrameTime = time;
+
         shader.setFloat("time", time);
 
-        mainCamera.setDirection(glm::vec3(sin(time), 0.0f, 0.0f));
-        mainCamera.setPos(glm::vec3(5.0f, cos(time)*5.0f, time*0.01f));
-
+        //mainCamera.setDirection(glm::vec3(sin(time), 0.0f, 0.0f));
+        if(Input::getKey(GLFW_KEY_W))
+            mainCamera.move(mainCamera.getDir()*speed*deltaTime);
+        if(Input::getKey(GLFW_KEY_S))
+            mainCamera.move(-mainCamera.getDir()*speed*deltaTime);
+        if(Input::getKey(GLFW_KEY_D))
+            mainCamera.move(mainCamera.getRight()*speed*deltaTime);
+        if(Input::getKey(GLFW_KEY_A))
+            mainCamera.move(-mainCamera.getRight()*speed*deltaTime);
+        if(Input::getKey(GLFW_KEY_SPACE))
+            mainCamera.move(glm::vec3(0.0f, speed*deltaTime, 0.0f));
+        if(Input::getKey(GLFW_KEY_LEFT_SHIFT))
+            mainCamera.move(glm::vec3(0.0f, -speed*deltaTime, 0.0f));
+        if(Input::getKey(GLFW_KEY_LEFT_ALT))
+            speed = 6.0f;
+        if(Input::getKeyUp(GLFW_KEY_LEFT_ALT))
+            speed = 2.0f;
+        
         shader.setMat4("view", mainCamera.viewMatrix());
 
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, glm::sin(time), glm::vec3(0.3f, 0.5f, 1.0f));
+        shader.setMat4("model", model);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         window.swapBuffers();
         window.pollEvents();
     }
-
-    glfwTerminate();
     return 0;
 }
