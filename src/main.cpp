@@ -9,6 +9,7 @@
 #include "window.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
+#include "camera.hpp"
 
 int main() {
     
@@ -18,8 +19,6 @@ int main() {
 
         out vec2 TexCoord;
 
-        out vec3 vPos;
-
         uniform mat4 model;
         uniform mat4 view;
         uniform mat4 projection;
@@ -27,15 +26,12 @@ int main() {
 
         void main()
         {
-            vec4 viewPos = view * model * vec4(aPos, 1.0);
-            vPos = viewPos.xyz;
-            gl_Position = projection * viewPos;
+            gl_Position = projection * view * model * vec4(aPos, 1.0);;
             TexCoord = aTexCoord;
         })";
 
     const char* fragmentShaderSource =  R"(#version 330 core    
         in vec2 TexCoord;  
-        in vec3 vPos;
         uniform sampler2D ourTexture;
 
         uniform float time;
@@ -43,10 +39,7 @@ int main() {
         out vec4 FragColor;
  
         void main() {
-            float distance = length(vPos);
-            float brightness = clamp(distance / 3.5, 0.0, 1.0);
-            brightness = 1.0 - brightness;
-            FragColor = texture(ourTexture, TexCoord)*brightness;
+            FragColor = texture(ourTexture, TexCoord);
         })";
 
     Window window(1000, 1000, "goida");
@@ -95,15 +88,10 @@ int main() {
         -0.5f,  0.5f, -0.5f, 0.0f, 1.0f
     };
 
-    unsigned int indices[] = {
-        0, 1, 3,  // Первый треугольник
-        1, 2, 3   // Второй треугольник
-    };
-
     Shader shader(vertexShaderSource, fragmentShaderSource);
     shader.use();
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
+    glClearColor(0.3f, 0.4f, 0.5f, 0.8f); 
     glEnable(GL_DEPTH_TEST);
 
     Texture testTex("data\\tex.jpg");
@@ -119,9 +107,8 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -130,11 +117,11 @@ int main() {
     glEnableVertexAttribArray(1);
 
     testTex.bind();
+    Camera mainCamera(glm::vec3(0.0f, 0.0f, -3.0f));
 
-    glm::mat4 view = glm::mat4(1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.5f)); 
-        
-    shader.setMat4("view", view);
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::rotate(model, 45.0f, glm::vec3(0.5f, 1.0f, 1.0f));
+    shader.setMat4("model", model);
 
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.15f, 100.0f);
@@ -143,12 +130,12 @@ int main() {
 
     while (!window.shouldClose()) {
         float time = (float)glfwGetTime();
-
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, time * glm::radians(210.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-
         shader.setFloat("time", time);
-        shader.setMat4("model", model);
+
+        mainCamera.setDirection(glm::vec3(sin(time), 0.0f, 0.0f));
+        mainCamera.setPos(glm::vec3(5.0f, cos(time)*5.0f, time*0.01f));
+
+        shader.setMat4("view", mainCamera.viewMatrix());
 
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
