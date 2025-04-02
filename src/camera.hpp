@@ -16,7 +16,7 @@ class Camera{
             float yaw;   
             float pitch; 
 
-            float mouseSensitivity = 0.28f;
+            float mouseSensitivity = 0.18f;
 
             bool firstMouse;
             float lastX;

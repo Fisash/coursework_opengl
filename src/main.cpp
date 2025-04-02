@@ -12,41 +12,43 @@
 #include "camera.hpp"
 #include "input.hpp"
 
+float speed = 2.5f;
 
-int main() {
-    
-    const char* vertexShaderSource =  R"(#version 330 core
+const char* vertexShaderSource =  R"(#version 330 core
         layout (location = 0) in vec3 aPos;
         layout (location = 1) in vec2 aTexCoord;
 
         out vec2 TexCoord;
-
+        out float FragDepth;
+        
         uniform mat4 model;
         uniform mat4 view;
         uniform mat4 projection;
 
-
         void main()
         {
-            gl_Position = projection * view * model * vec4(aPos, 1.0);;
+            vec4 worldPos = view * model * vec4(aPos, 1.0);
+            gl_Position = projection * worldPos;
             TexCoord = aTexCoord;
+            FragDepth = -worldPos.z; // Используем отрицательное значение, т.к. OpenGL использует правостороннюю систему координат
         })";
 
-    const char* fragmentShaderSource =  R"(#version 330 core    
+const char* fragmentShaderSource =  R"(#version 330 core    
         in vec2 TexCoord;  
+        in float FragDepth;
+        
         uniform sampler2D ourTexture;
-
-        uniform float time;
-
+        
         out vec4 FragColor;
  
         void main() {
-            FragColor = texture(ourTexture, TexCoord);
+            float brightness = clamp(1.0 - FragDepth * 0.1, 0.2, 1.0); // Чем дальше, тем темнее (но не полностью чёрное)
+            vec4 texColor = texture(ourTexture, TexCoord);
+            FragColor = vec4(texColor.rgb * brightness, texColor.a);
         })";
 
-    Window window(1000, 1000, "goida");
 
-   float vertices[] = {
+float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -88,15 +90,65 @@ int main() {
         0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
         -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
         -0.5f,  0.5f, -0.5f, 0.0f, 1.0f
-    };
+};
 
-    Shader shader(vertexShaderSource, fragmentShaderSource);
+glm::vec3 cubePositions[] = {
+    glm::vec3( 0.0f,  0.0f,  0.0f), 
+    glm::vec3( 2.0f,  5.0f, -15.0f), 
+    glm::vec3(-1.5f, -2.2f, -2.5f),  
+    glm::vec3(-3.8f, -2.0f, -12.3f),  
+    glm::vec3( 2.4f, -0.4f, -3.5f),  
+    glm::vec3(-1.7f,  3.0f, -7.5f),  
+    glm::vec3( 1.3f, -2.0f, -2.5f),  
+    glm::vec3( 1.5f,  2.0f, -2.5f), 
+    glm::vec3( 1.5f,  0.2f, -1.5f), 
+    glm::vec3(-1.3f,  1.0f, -1.5f)  
+};
+
+Window window(1000, 1000, "goida");
+Camera mainCamera(glm::vec3(0.0f, 0.0f, -5.0f));
+Shader shader(vertexShaderSource, fragmentShaderSource);
+//Texture testTex("data\\tex.jpg");
+Texture testTex = Texture(0.8f);
+
+
+void render(){
+    for(unsigned int i = 0; i < 10; i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, cubePositions[i]);
+        float angle = 20.0f * i; 
+        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        shader.setMat4("model", model);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+}
+
+void input(float deltaTime){
+    if(Input::getKey(GLFW_KEY_W))
+        mainCamera.move(mainCamera.getDir()*speed*deltaTime);
+    if(Input::getKey(GLFW_KEY_S))
+        mainCamera.move(-mainCamera.getDir()*speed*deltaTime);
+    if(Input::getKey(GLFW_KEY_D))
+        mainCamera.move(mainCamera.getRight()*speed*deltaTime);
+    if(Input::getKey(GLFW_KEY_A))
+        mainCamera.move(-mainCamera.getRight()*speed*deltaTime);
+    if(Input::getKey(GLFW_KEY_SPACE))
+        mainCamera.move(glm::vec3(0.0f, speed*deltaTime, 0.0f));
+    if(Input::getKey(GLFW_KEY_LEFT_SHIFT))
+        mainCamera.move(glm::vec3(0.0f, -speed*deltaTime, 0.0f));
+    if(Input::getKey(GLFW_KEY_LEFT_ALT))
+        speed = 6.0f;
+    if(Input::getKeyUp(GLFW_KEY_LEFT_ALT))
+        speed = 2.5f;
+}
+int main() {
+    
     shader.use();
 
     glClearColor(0.3f, 0.4f, 0.5f, 0.8f); 
     glEnable(GL_DEPTH_TEST);
-
-    Texture testTex("data\\tex.jpg");
 
     // Настройка VAO, VBO, EBO
     GLuint VAO, VBO, EBO;
@@ -119,7 +171,6 @@ int main() {
     glEnableVertexAttribArray(1);
 
     testTex.bind();
-    Camera mainCamera(glm::vec3(0.0f, 0.0f, -5.0f));
 
     glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
     glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);
@@ -132,41 +183,17 @@ int main() {
     float lastFrameTime = 0.0f;
     float deltaTime = 0.0f;
 
-    float speed = 2.0f;
     while (!window.shouldClose()) {
         float time = (float)glfwGetTime();
         deltaTime = time - lastFrameTime;
         lastFrameTime = time;
-
         shader.setFloat("time", time);
 
-        //mainCamera.setDirection(glm::vec3(sin(time), 0.0f, 0.0f));
-        if(Input::getKey(GLFW_KEY_W))
-            mainCamera.move(mainCamera.getDir()*speed*deltaTime);
-        if(Input::getKey(GLFW_KEY_S))
-            mainCamera.move(-mainCamera.getDir()*speed*deltaTime);
-        if(Input::getKey(GLFW_KEY_D))
-            mainCamera.move(mainCamera.getRight()*speed*deltaTime);
-        if(Input::getKey(GLFW_KEY_A))
-            mainCamera.move(-mainCamera.getRight()*speed*deltaTime);
-        if(Input::getKey(GLFW_KEY_SPACE))
-            mainCamera.move(glm::vec3(0.0f, speed*deltaTime, 0.0f));
-        if(Input::getKey(GLFW_KEY_LEFT_SHIFT))
-            mainCamera.move(glm::vec3(0.0f, -speed*deltaTime, 0.0f));
-        if(Input::getKey(GLFW_KEY_LEFT_ALT))
-            speed = 6.0f;
-        if(Input::getKeyUp(GLFW_KEY_LEFT_ALT))
-            speed = 2.0f;
-        
+        input(deltaTime);
         shader.setMat4("view", mainCamera.viewMatrix());
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::sin(time), glm::vec3(0.3f, 0.5f, 1.0f));
-        shader.setMat4("model", model);
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
+        render();
 
         window.swapBuffers();
         window.pollEvents();
