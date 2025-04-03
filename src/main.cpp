@@ -15,7 +15,7 @@
 
 float speed = 2.5f;
 
-const char* vertexShaderSource =  R"(#version 330 core
+const char* vertexShaderSource =  R"(#version 460 core
         layout (location = 0) in vec3 aPos;
         layout (location = 1) in vec2 aTexCoord;
 
@@ -34,7 +34,7 @@ const char* vertexShaderSource =  R"(#version 330 core
             FragDepth = -worldPos.z; // Используем отрицательное значение, т.к. OpenGL использует правостороннюю систему координат
         })";
 
-const char* fragmentShaderSource =  R"(#version 330 core    
+const char* fragmentShaderSource =  R"(#version 460 core    
         in vec2 TexCoord;  
         in float FragDepth;
         
@@ -168,13 +168,15 @@ int main() {
 
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.15f, 100.0f);
-
+    shader.use();
     shader.setMat4("projection", projection);
 
     float lastFrameTime = 0.0f;
     float deltaTime = 0.0f;
 
     while (!window.shouldClose()) {
+        window.pollEvents();
+        
         float time = (float)glfwGetTime();
         deltaTime = time - lastFrameTime;
         lastFrameTime = time;
@@ -187,7 +189,6 @@ int main() {
         render();
 
         window.swapBuffers();
-        window.pollEvents();
         int err = glGetError();
 
         if (err != GL_NO_ERROR)
