@@ -45,6 +45,16 @@
         "xutility": "cpp",
         "algorithm": "cpp",
         "list": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "cstdarg": "cpp",
+        "functional": "cpp",
+        "iomanip": "cpp",
+        "locale": "cpp",
+        "unordered_map": "cpp",
+        "xhash": "cpp",
+        "xlocbuf": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xloctime": "cpp"
     }
 }

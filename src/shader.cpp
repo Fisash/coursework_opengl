@@ -39,6 +39,8 @@ Shader::Shader(const char* vertexSource, const char* fragmentSource) {
     glDeleteShader(fragmentShader);
 }
 
+Shader::Shader() = default;
+
 void Shader::use() const { glUseProgram(programID); }
 
 void Shader::setMat4(const char* name, glm::mat4 mat){

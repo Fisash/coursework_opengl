@@ -13,6 +13,7 @@ private:
 
 public:
     Shader(const char* vertexSource, const char* fragmentSource);
+    Shader();
     void use() const;
     void setMat4(const char* name, glm::mat4 mat);
     void setFloat(const char* name, float val);
