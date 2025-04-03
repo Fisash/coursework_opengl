@@ -12,6 +12,7 @@
 #include "camera.hpp"
 #include "input.hpp"
 #include "mesh.hpp"
+#include "grid.hpp"
 
 float speed = 2.5f;
 
@@ -21,7 +22,8 @@ const char* vertexShaderSource =  R"(#version 460 core
 
         out vec2 TexCoord;
         out float FragDepth;
-        
+        out float h;
+
         uniform mat4 model;
         uniform mat4 view;
         uniform mat4 projection;
@@ -29,6 +31,7 @@ const char* vertexShaderSource =  R"(#version 460 core
         void main()
         {
             vec4 worldPos = view * model * vec4(aPos, 1.0);
+            h = aPos.y;
             gl_Position = projection * worldPos;
             TexCoord = aTexCoord;
             FragDepth = -worldPos.z; // Используем отрицательное значение, т.к. OpenGL использует правостороннюю систему координат
@@ -37,7 +40,8 @@ const char* vertexShaderSource =  R"(#version 460 core
 const char* fragmentShaderSource =  R"(#version 460 core    
         in vec2 TexCoord;  
         in float FragDepth;
-        
+        in float h;
+
         uniform sampler2D ourTexture;
         
         out vec4 FragColor;
@@ -45,94 +49,48 @@ const char* fragmentShaderSource =  R"(#version 460 core
         void main() {
             float brightness = clamp(1.0 - FragDepth * 0.1, 0.2, 1.0); // Чем дальше, тем темнее (но не полностью чёрное)
             vec4 texColor = texture(ourTexture, TexCoord);
-            FragColor = vec4(texColor.rgb * brightness, texColor.a);
+
+            vec3 terrainColor;
+
+            // Определяем цвет в зависимости от высоты h
+            if (h < 0.15) {
+                // Ниже определенного уровня - синий (вода)
+                terrainColor = vec3(0.1, 0.3, 1.0);
+            } else if (h < 0.3) {
+                // Ещё выше - желтый (пляж)
+                terrainColor = vec3(1.0, 1.0, 0.0);
+            } else if (h < 0.6) {
+                // Затем зеленый (лес)
+                terrainColor = vec3(0.0, 1.0, 0.0);
+            } else if (h < 1.3) {
+                // Потом серый (горы)
+                terrainColor = vec3(0.5, 0.5, 0.5);
+            } else {
+                // И наконец белый (снег на вершинах)
+                terrainColor = vec3(1.0, 1.0, 1.0);
+            }
+
+            FragColor = vec4((terrainColor + texColor.xyz)* brightness, 1.0);
         })";
-
-
-float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-
-        0.5f,  0.5f,  0.5f,1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f
-};
-
-glm::vec3 cubePositions[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f), 
-    glm::vec3( 2.0f,  5.0f, -15.0f), 
-    glm::vec3(-1.5f, -2.2f, -2.5f),  
-    glm::vec3(-3.8f, -2.0f, -12.3f),  
-    glm::vec3( 2.4f, -0.4f, -3.5f),  
-    glm::vec3(-1.7f,  3.0f, -7.5f),  
-    glm::vec3( 1.3f, -2.0f, -2.5f),  
-    glm::vec3( 1.5f,  2.0f, -2.5f), 
-    glm::vec3( 1.5f,  0.2f, -1.5f), 
-    glm::vec3(-1.3f,  1.0f, -1.5f)  
-};
 
 Window window(1000, 1000, "goida");
 Camera mainCamera(glm::vec3(0.0f, 0.0f, -5.0f));
 Shader shader(vertexShaderSource, fragmentShaderSource);
-//Texture testTex("data\\tex.jpg");
-Texture testTex = Texture(1.0f);
 
-Mesh cube(shader);
+Texture testTex("data\\tex.jpg");
+//Texture testTex = Texture(1.0f);
+
+Mesh gridMesh(shader);
 
 void render(){
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, cubePositions[0] + glm::vec3(0.0f, -3.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(20.0f, 0.5f, 20.0f));
+    model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
+    //model = glm::scale(model, glm::vec3(20.0f, 0.5f, 20.0f));
     shader.setMat4("model", model);
 
-    cube.render();
+    gridMesh.render();
 
-    for(unsigned int i = 0; i < 10; i++)
-    {
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, cubePositions[i]);
-        float angle = 20.0f * i; 
-        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-        shader.setMat4("model", model);
-
-        cube.render();
-    }
 }
 
 void input(float deltaTime){
@@ -160,8 +118,9 @@ int main() {
 
     testTex.bind();
 
-    std::vector<float> cubeVertices(vertices, vertices + sizeof(vertices) / sizeof(vertices[0]));
-    cube.setVertices(cubeVertices);
+    Grid grid(20, 20, 0.15f);
+    gridMesh.setVertices(grid.genGridVertices(), false);
+    gridMesh.setIndices(grid.genGridIndices());
 
     glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
     glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);
