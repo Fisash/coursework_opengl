@@ -13,7 +13,9 @@ class Mesh{
 
         void setAttributes();
     public:
+        Mesh(Shader& shader);
         Mesh(const std::vector<float>& vertices, Shader& shader);
         void render();
         void setIndices(const std::vector<unsigned int>& indices);
+        void setVertices(const std::vector<float>& vertices, bool updateIndeces = true);
 };

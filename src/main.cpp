@@ -113,7 +113,6 @@ Shader shader(vertexShaderSource, fragmentShaderSource);
 Texture testTex = Texture(1.0f);
 
 std::vector<float> cubeVertices(vertices, vertices + sizeof(vertices) / sizeof(vertices[0]));
-
 Mesh cube(cubeVertices, shader);
 
 void render(){
@@ -162,7 +161,6 @@ int main() {
 
     testTex.bind();
 
-
     glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
     glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);
 
@@ -176,7 +174,7 @@ int main() {
 
     while (!window.shouldClose()) {
         window.pollEvents();
-        
+
         float time = (float)glfwGetTime();
         deltaTime = time - lastFrameTime;
         lastFrameTime = time;
