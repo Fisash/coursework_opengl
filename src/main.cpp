@@ -112,8 +112,7 @@ Shader shader(vertexShaderSource, fragmentShaderSource);
 //Texture testTex("data\\tex.jpg");
 Texture testTex = Texture(1.0f);
 
-std::vector<float> cubeVertices(vertices, vertices + sizeof(vertices) / sizeof(vertices[0]));
-Mesh cube(cubeVertices, shader);
+Mesh cube(shader);
 
 void render(){
 
@@ -160,6 +159,9 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     testTex.bind();
+
+    std::vector<float> cubeVertices(vertices, vertices + sizeof(vertices) / sizeof(vertices[0]));
+    cube.setVertices(cubeVertices);
 
     glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
     glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);

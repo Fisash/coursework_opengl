@@ -2,6 +2,7 @@
 
 
 void Mesh::setAttributes(){
+    glBindVertexArray(VAO);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -17,7 +18,6 @@ Mesh::Mesh(Shader& shader) {
     glBindVertexArray(VAO);
 
     this->shaderPtr = &shader;
-    setAttributes();
 } 
 
 Mesh::Mesh(const std::vector<float>& vertices, Shader& shader) 
@@ -56,4 +56,5 @@ void Mesh::setVertices(const std::vector<float>& vertices, bool updateIndeces){
         }
         setIndices(indices);
     }
+    setAttributes();
 }
