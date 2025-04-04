@@ -19,7 +19,7 @@ std::vector<float> Grid::genGridVertices() {
     std::vector<float> vertices;
     vertices.reserve(numVerticesX * numVerticesZ * 5);
 
-    float scale = 0.2f;
+    float scale = 0.28f;
     // Генерируем вершины: x, y, z, u, v
     for (float z = 0; z <= height; z += step) {
         for (float x = 0; x <= width; x += step) {
@@ -34,7 +34,7 @@ std::vector<float> Grid::genGridVertices() {
                 amplitude *= 0.5f;   // уменьшение амплитуды
                 frequency *= 1.7f;   // увеличение частоты
             }
-            float y = noise * 3.0f; // масштабирование высоты
+            float y = noise * 3.1f; // масштабирование высоты
             if(y < 0.145f)
                 y = 0.145f;
             vertices.push_back(y);

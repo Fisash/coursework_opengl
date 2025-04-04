@@ -47,10 +47,11 @@ const char* fragmentShaderSource =  R"(#version 460 core
         out vec4 FragColor;
  
         void main() {
-            float brightness = clamp(1.0 - FragDepth * 0.1, 0.2, 1.0); // Чем дальше, тем темнее (но не полностью чёрное)
+            float brightness = clamp(1.0 - FragDepth * 0.1, 0.35, 0.9); // Чем дальше, тем темнее (но не полностью чёрное)
             vec4 texColor = texture(ourTexture, TexCoord);
 
             vec3 terrainColor;
+            int texturingType = 1;
 
             // Определяем цвет в зависимости от высоты h
             if (h < 0.15) {
@@ -58,27 +59,34 @@ const char* fragmentShaderSource =  R"(#version 460 core
                 terrainColor = vec3(0.1, 0.3, 1.0);
             } else if (h < 0.3) {
                 // Ещё выше - желтый (пляж)
-                terrainColor = vec3(1.0, 1.0, 0.0);
+                texturingType = 0;
+                terrainColor = vec3(0.8, 0.7, 0.3);
             } else if (h < 0.6) {
                 // Затем зеленый (лес)
-                terrainColor = vec3(0.0, 1.0, 0.0);
+                texturingType = 0;
+                terrainColor = vec3(0.2, 0.7, 0.15);
             } else if (h < 1.3) {
                 // Потом серый (горы)
-                terrainColor = vec3(0.5, 0.5, 0.5);
+                terrainColor = vec3(0.28, 0.33, 0.4);
             } else {
                 // И наконец белый (снег на вершинах)
-                terrainColor = vec3(1.0, 1.0, 1.0);
+                terrainColor = vec3(0.95, 1.0, 0.95);
             }
-
-            FragColor = vec4((terrainColor + texColor.xyz)* brightness, 1.0);
+            
+            vec3 baseColor;
+            if(texturingType == 1)
+                baseColor = (terrainColor + texColor.xyz);
+            else if(texturingType == 0)
+                baseColor = terrainColor + (0.3f*texColor.xyz);
+            FragColor = vec4(baseColor*brightness, 1.0);
         })";
 
 Window window(1000, 1000, "goida");
 Camera mainCamera(glm::vec3(0.0f, 0.0f, -5.0f));
 Shader shader(vertexShaderSource, fragmentShaderSource);
 
-Texture testTex("data\\tex.jpg");
-//Texture testTex = Texture(1.0f);
+//Texture testTex("data\\tex.jpg");
+Texture testTex = Texture(512, 512, 0.15f);
 
 Mesh gridMesh(shader);
 
@@ -118,7 +126,7 @@ int main() {
 
     testTex.bind();
 
-    Grid grid(20, 20, 0.15f);
+    Grid grid(10, 10, 0.15f);
     gridMesh.setVertices(grid.genGridVertices(), false);
     gridMesh.setIndices(grid.genGridIndices());
 
