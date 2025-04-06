@@ -2,7 +2,7 @@
 #include "stb_perlin.h"
 #include <cstdlib> // для std::rand()
 #include <ctime>   // для std::time()
-
+#include "options.hpp"
 
 Grid::Grid(unsigned int width, unsigned int height, float step)
         : width(width), height(height), step(step) {}
@@ -19,7 +19,7 @@ std::vector<float> Grid::genGridVertices() {
     std::vector<float> vertices;
     vertices.reserve(numVerticesX * numVerticesZ * 5);
 
-    float scale = 0.28f;
+    float scale = Options::scale;
     // Генерируем вершины: x, y, z, u, v
     for (float z = 0; z <= height; z += step) {
         for (float x = 0; x <= width; x += step) {

@@ -93,6 +93,8 @@ Shader* shader = nullptr;
 Camera* mainCamera = nullptr;
 Mesh*  gridMesh = nullptr;
 
+glm::vec3 terrainCenter(0, 0, 0); 
+
 void render(){
 
     glm::mat4 model = glm::mat4(1.0f);
@@ -123,7 +125,8 @@ void input(float deltaTime){
 }
 
 void generateGrid(Mesh *&mesh){
-    Grid grid(Options::width, Options::heigh, 0.3f);
+    Grid grid(Options::width, Options::heigh, 1/Options::detailiztion);
+    terrainCenter = glm::vec3(Options::width/2, -3.0f,Options::heigh/2); 
     mesh = new Mesh(grid.genGridVertices(), *shader);
     mesh->setIndices(grid.genGridIndices());
 }
@@ -175,7 +178,6 @@ int main() {
             shader->setMat4("view", mainCamera->viewMatrix());
         }
         else{
-            glm::vec3 terrainCenter(10.0f, -3.0f, 10.0f); 
             float radius = 10.0f; 
             float height = 12.0f;
 

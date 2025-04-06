@@ -36,6 +36,7 @@ namespace Options{
             );
             ImGui::Text("Select the generation and display options");
             ImGui::SliderFloat("Scale", &scale, 0.01f, 1.0f);
+            ImGui::SliderFloat("Detaliztion", &detailiztion, 1.0f, 80.0f);
             ImGui::PushItemWidth(80); 
             ImGui::SliderInt("Heigh", &heigh, 5, 75);
             ImGui::SameLine();
@@ -57,6 +58,7 @@ namespace Options{
     }   
 
     float scale = 0.2f;
+    float detailiztion = 4.0f;
     int heigh = 10;
     int width = 10;
 
