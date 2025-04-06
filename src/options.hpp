@@ -22,10 +22,3 @@ class Options{
 
         static void destroy();
 };
-
-float Options::scale = 0.2f;
-int Options::heigh = 10;
-int Options::width = 10;
-
-bool Options::isOnlyLines = false;
-bool Options::isShouldRegen = true;

@@ -1,5 +1,4 @@
 #include "options.hpp"
-#include<iostream>
 
 void Options::init(Window window){
     IMGUI_CHECKVERSION();
@@ -16,6 +15,11 @@ void Options::drawData(){
 }
 
 void Options::render(){
+        glGetError();
+        glCreateShader(GL_VERTEX_SHADER);
+        int error = glGetError();
+        std::cout << error << std::endl;
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 
@@ -49,3 +53,10 @@ void Options::destroy(){
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }   
+
+float Options::scale = 0.2f;
+int Options::heigh = 10;
+int Options::width = 10;
+
+bool Options::isOnlyLines = false;
+bool Options::isShouldRegen = true;

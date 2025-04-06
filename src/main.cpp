@@ -150,11 +150,6 @@ int main() {
 
     Options::init(window);
 
-    static float sliderValue = 0.2f;
-    static int h;
-    static int w;
-    static bool checkboxValue = false;
-
     while (!window.shouldClose()) {
         window.pollEvents();
 
@@ -162,7 +157,7 @@ int main() {
         deltaTime = time - lastFrameTime;
         lastFrameTime = time;
         shader.setFloat("time", time);
-        
+
         if(mainCamera.interactMovementMode){
             input(deltaTime); 
             shader.setMat4("view", mainCamera.viewMatrix());
