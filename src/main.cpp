@@ -87,27 +87,18 @@ const char* fragmentShaderSource =  R"(#version 460 core
             FragColor = vec4(baseColor*brightness, 1.0);
         })";
 
-Window window(1000, 1000, "goida");
-Camera mainCamera(glm::vec3(0.0f, 3.0f, -5.0f));
-Shader shader(vertexShaderSource, fragmentShaderSource);
 
-//Texture testTex("data\\tex.jpg");
-Texture testTex = Texture(512, 512, 0.15f);
-
-Mesh gridMesh(shader);
-
-void render(){
+void render(Shader& shader, Mesh gridMesh){
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
     //model = glm::scale(model, glm::vec3(20.0f, 0.5f, 20.0f));
     shader.setMat4("model", model);
-
     gridMesh.render();
 
 }
 
-void input(float deltaTime){
+void input(float deltaTime, Camera& mainCamera){
     if(Input::getKey(GLFW_KEY_W))
         mainCamera.move(mainCamera.getDir()*speed*deltaTime);
     if(Input::getKey(GLFW_KEY_S))
@@ -125,7 +116,16 @@ void input(float deltaTime){
     if(Input::getKeyUp(GLFW_KEY_LEFT_ALT))
         speed = 2.5f;
 }
+
 int main() {
+    Window window(1000, 1000, "goida");
+    Shader shader(vertexShaderSource, fragmentShaderSource);
+    Camera mainCamera(glm::vec3(0.0f, 3.0f, -5.0f));
+
+    //Texture testTex("data\\tex.jpg");
+    Texture testTex = Texture(512, 512, 0.15f);
+
+    Mesh gridMesh(shader);
 
     glClearColor(0.2f, 0.25f, 0.35f, 1.0f); 
     glEnable(GL_DEPTH_TEST);
@@ -159,7 +159,7 @@ int main() {
         shader.setFloat("time", time);
 
         if(mainCamera.interactMovementMode){
-            input(deltaTime); 
+            input(deltaTime, mainCamera); 
             shader.setMat4("view", mainCamera.viewMatrix());
         }
         else{
@@ -176,7 +176,7 @@ int main() {
         Options::render();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        render();
+        render(shader, gridMesh);
         Options::drawData();
         
         window.swapBuffers();
