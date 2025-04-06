@@ -122,6 +122,12 @@ void input(float deltaTime){
         speed = 2.5f;
 }
 
+void generateGrid(Mesh *&mesh){
+    Grid grid(Options::width, Options::heigh, 0.3f);
+    mesh = new Mesh(grid.genGridVertices(), *shader);
+    mesh->setIndices(grid.genGridIndices());
+}
+
 int main() {
     window = new Window(1000, 1000, "goida");
     shader = new Shader(vertexShaderSource, fragmentShaderSource);
@@ -136,10 +142,7 @@ int main() {
 
     testTex.bind();
 
-    Grid grid(20, 20, 0.3f);
-
-    gridMesh = new Mesh(grid.genGridVertices(), *shader);
-    gridMesh->setIndices(grid.genGridIndices());
+    generateGrid(gridMesh);
 
     //glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
     //glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);
@@ -153,7 +156,7 @@ int main() {
     float deltaTime = 0.0f;
     //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    Options::init(*window);
+    Options::init(window);
 
     while (!window->shouldClose()) {
         window->pollEvents();
@@ -163,6 +166,10 @@ int main() {
         lastFrameTime = time;
         shader->setFloat("time", time);
 
+        if(Options::isShouldRegen){
+            generateGrid(gridMesh);
+            Options::isShouldRegen = false;
+        }
         if(mainCamera->interactMovementMode){
             input(deltaTime); 
             shader->setMat4("view", mainCamera->viewMatrix());

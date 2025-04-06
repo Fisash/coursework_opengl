@@ -5,20 +5,19 @@
 #include "imgui_impl_opengl3.h"
 #include "window.hpp"
 
-class Options{
-    public:
-        static float scale;
-        static int heigh;
-        static int width;
-        static bool isOnlyLines;
+namespace Options{
+        extern float scale;
+        extern int heigh;
+        extern int width;
+        extern bool isOnlyLines;
 
-        static bool isShouldRegen;
+        extern bool isShouldRegen;
 
-        static void init(Window window);
+        void init(Window* window);
 
-        static void drawData();
+        void drawData();
 
-        static void render();
+        void render();
 
-        static void destroy();
+        void destroy();
 };
