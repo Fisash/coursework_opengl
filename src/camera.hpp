@@ -21,16 +21,21 @@ class Camera{
             bool firstMouse;
             float lastX;
             float lastY;
+
         public:
+            bool interactMovementMode = false;
+            
             Camera(glm::vec3 pos, float yaw = 90.0f, float pitch = 0.0f);
 
             glm::mat4 viewMatrix();
+            glm::mat4 viewMatrix(glm::vec3 target);
 
             void setPos(glm::vec3 pos);
             glm::vec3 getPos();
             void move(glm::vec3 pos);
 
             void updateDirection();
+            void setDirection(float yaw, float pitch);
             glm::vec3 getDir();
             glm::vec3 getRight();
 

@@ -14,6 +14,12 @@
 #include "mesh.hpp"
 #include "grid.hpp"
 
+#include "options.hpp"
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 float speed = 2.5f;
 
 const char* vertexShaderSource =  R"(#version 460 core
@@ -82,7 +88,7 @@ const char* fragmentShaderSource =  R"(#version 460 core
         })";
 
 Window window(1000, 1000, "goida");
-Camera mainCamera(glm::vec3(0.0f, 0.0f, -5.0f));
+Camera mainCamera(glm::vec3(0.0f, 3.0f, -5.0f));
 Shader shader(vertexShaderSource, fragmentShaderSource);
 
 //Texture testTex("data\\tex.jpg");
@@ -126,20 +132,28 @@ int main() {
 
     testTex.bind();
 
-    Grid grid(10, 10, 0.15f);
+    Grid grid(20, 20, 0.3f);
     gridMesh.setVertices(grid.genGridVertices(), false);
     gridMesh.setIndices(grid.genGridIndices());
 
-    glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
-    glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);
+    //glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
+    //glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);
 
     glm::mat4 projection;
-    projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.15f, 100.0f);
+    projection = glm::perspective(glm::radians(60.0f), 1.0f, 0.15f, 100.0f);
     shader.use();
     shader.setMat4("projection", projection);
 
     float lastFrameTime = 0.0f;
     float deltaTime = 0.0f;
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+    Options::init(window);
+
+    static float sliderValue = 0.2f;
+    static int h;
+    static int w;
+    static bool checkboxValue = false;
 
     while (!window.shouldClose()) {
         window.pollEvents();
@@ -148,18 +162,35 @@ int main() {
         deltaTime = time - lastFrameTime;
         lastFrameTime = time;
         shader.setFloat("time", time);
+        
+        if(mainCamera.interactMovementMode){
+            input(deltaTime); 
+            shader.setMat4("view", mainCamera.viewMatrix());
+        }
+        else{
+            glm::vec3 terrainCenter(10.0f, -3.0f, 10.0f); 
+            float radius = 10.0f; 
+            float height = 12.0f;
 
-        input(deltaTime);
-        shader.setMat4("view", mainCamera.viewMatrix());
+            float camX = terrainCenter.x + sin(time * 0.5f) * radius;
+            float camZ = terrainCenter.z + cos(time * 0.5f) * radius; 
+            mainCamera.setPos(glm::vec3(camX, terrainCenter.y + height, camZ)); 
+            shader.setMat4("view", mainCamera.viewMatrix(terrainCenter));
+        }
+
+        Options::render();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         render();
-
+        Options::drawData();
+        
         window.swapBuffers();
         int err = glGetError();
 
         if (err != GL_NO_ERROR)
             std::cout<<err;
     }
+    Options::destroy;
+
     return 0;
 }

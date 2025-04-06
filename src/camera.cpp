@@ -13,6 +13,12 @@ glm::mat4 Camera::viewMatrix(){
             up);
 }
 
+glm::mat4 Camera::viewMatrix(glm::vec3 target){
+    return glm::lookAt(position, 
+            target, 
+            up);
+}
+
 void Camera::setPos(glm::vec3 pos){position = pos;}
 glm::vec3 Camera::getPos() {return position;}
 
@@ -36,6 +42,12 @@ void Camera::updateDirection() {
 
     right = glm::normalize(glm::cross(direction, glm::vec3(0.0f, 1.0f, 0.0f)));
     up = glm::normalize(glm::cross(right, direction));
+}
+
+void Camera::setDirection(float yaw, float pitch){
+    this->yaw = yaw;
+    this->pitch = pitch;
+    updateDirection();
 }
 
 void Camera::processMouseMovement(float xoffset, float yoffset) {
