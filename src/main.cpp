@@ -88,29 +88,34 @@ const char* fragmentShaderSource =  R"(#version 460 core
         })";
 
 
-void render(Shader& shader, Mesh gridMesh){
+Window*  window = nullptr;
+Shader* shader = nullptr;
+Camera* mainCamera = nullptr;
+Mesh*  gridMesh = nullptr;
+
+void render(){
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
     //model = glm::scale(model, glm::vec3(20.0f, 0.5f, 20.0f));
-    shader.setMat4("model", model);
-    gridMesh.render();
+    shader->setMat4("model", model);
+    gridMesh->render();
 
 }
 
-void input(float deltaTime, Camera& mainCamera){
+void input(float deltaTime){
     if(Input::getKey(GLFW_KEY_W))
-        mainCamera.move(mainCamera.getDir()*speed*deltaTime);
+        mainCamera->move(mainCamera->getDir()*speed*deltaTime);
     if(Input::getKey(GLFW_KEY_S))
-        mainCamera.move(-mainCamera.getDir()*speed*deltaTime);
+        mainCamera->move(-mainCamera->getDir()*speed*deltaTime);
     if(Input::getKey(GLFW_KEY_D))
-        mainCamera.move(mainCamera.getRight()*speed*deltaTime);
+        mainCamera->move(mainCamera->getRight()*speed*deltaTime);
     if(Input::getKey(GLFW_KEY_A))
-        mainCamera.move(-mainCamera.getRight()*speed*deltaTime);
+        mainCamera->move(-mainCamera->getRight()*speed*deltaTime);
     if(Input::getKey(GLFW_KEY_SPACE))
-        mainCamera.move(glm::vec3(0.0f, speed*deltaTime, 0.0f));
+        mainCamera->move(glm::vec3(0.0f, speed*deltaTime, 0.0f));
     if(Input::getKey(GLFW_KEY_LEFT_SHIFT))
-        mainCamera.move(glm::vec3(0.0f, -speed*deltaTime, 0.0f));
+        mainCamera->move(glm::vec3(0.0f, -speed*deltaTime, 0.0f));
     if(Input::getKey(GLFW_KEY_LEFT_ALT))
         speed = 6.0f;
     if(Input::getKeyUp(GLFW_KEY_LEFT_ALT))
@@ -118,14 +123,13 @@ void input(float deltaTime, Camera& mainCamera){
 }
 
 int main() {
-    Window window(1000, 1000, "goida");
-    Shader shader(vertexShaderSource, fragmentShaderSource);
-    Camera mainCamera(glm::vec3(0.0f, 3.0f, -5.0f));
+    window = new Window(1000, 1000, "goida");
+    shader = new Shader(vertexShaderSource, fragmentShaderSource);
+    mainCamera = new Camera(glm::vec3(0.0f, 3.0f, -5.0f));
 
     //Texture testTex("data\\tex.jpg");
     Texture testTex = Texture(512, 512, 0.15f);
 
-    Mesh gridMesh(shader);
 
     glClearColor(0.2f, 0.25f, 0.35f, 1.0f); 
     glEnable(GL_DEPTH_TEST);
@@ -133,34 +137,35 @@ int main() {
     testTex.bind();
 
     Grid grid(20, 20, 0.3f);
-    gridMesh.setVertices(grid.genGridVertices(), false);
-    gridMesh.setIndices(grid.genGridIndices());
+
+    gridMesh = new Mesh(grid.genGridVertices(), *shader);
+    gridMesh->setIndices(grid.genGridIndices());
 
     //glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
     //glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);
 
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(60.0f), 1.0f, 0.15f, 100.0f);
-    shader.use();
-    shader.setMat4("projection", projection);
+    shader->use();
+    shader->setMat4("projection", projection);
 
     float lastFrameTime = 0.0f;
     float deltaTime = 0.0f;
     //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    Options::init(window);
+    Options::init(*window);
 
-    while (!window.shouldClose()) {
-        window.pollEvents();
+    while (!window->shouldClose()) {
+        window->pollEvents();
 
         float time = (float)glfwGetTime();
         deltaTime = time - lastFrameTime;
         lastFrameTime = time;
-        shader.setFloat("time", time);
+        shader->setFloat("time", time);
 
-        if(mainCamera.interactMovementMode){
-            input(deltaTime, mainCamera); 
-            shader.setMat4("view", mainCamera.viewMatrix());
+        if(mainCamera->interactMovementMode){
+            input(deltaTime); 
+            shader->setMat4("view", mainCamera->viewMatrix());
         }
         else{
             glm::vec3 terrainCenter(10.0f, -3.0f, 10.0f); 
@@ -169,23 +174,27 @@ int main() {
 
             float camX = terrainCenter.x + sin(time * 0.5f) * radius;
             float camZ = terrainCenter.z + cos(time * 0.5f) * radius; 
-            mainCamera.setPos(glm::vec3(camX, terrainCenter.y + height, camZ)); 
-            shader.setMat4("view", mainCamera.viewMatrix(terrainCenter));
+            mainCamera->setPos(glm::vec3(camX, terrainCenter.y + height, camZ)); 
+            shader->setMat4("view", mainCamera->viewMatrix(terrainCenter));
         }
 
         Options::render();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        render(shader, gridMesh);
+        render();
         Options::drawData();
         
-        window.swapBuffers();
+        window->swapBuffers();
         int err = glGetError();
 
         if (err != GL_NO_ERROR)
             std::cout<<err;
     }
-    Options::destroy;
+    Options::destroy();
+    delete window;
+    delete shader;
+    delete mainCamera;
+    delete gridMesh;
 
     return 0;
 }

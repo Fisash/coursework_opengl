@@ -1,1 +1,1 @@
-g++ -Os -s src/*.cpp src/imgui/*.cpp -o main.exe -I./include -DGLEW_STATIC lib/glew32s.lib lib/libglfw3.a -lopengl32 -lgdi32 -lglu32 -static-libgcc -static-libstdc++ -Wl,--strip-all -Wl,--gc-sections -Wl,-Bstatic -Wl,-Bdynamic
+g++ -Os -s -pthread src/*.cpp src/imgui/*.cpp -o main.exe -I./include -DGLEW_STATIC lib/glew32s.lib lib/libglfw3.a -lopengl32 -lgdi32 -lglu32 -static-libgcc -static-libstdc++ -Wl,--strip-all -Wl,--gc-sections -Wl,-Bstatic -Wl,-Bdynamic
