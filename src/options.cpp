@@ -33,7 +33,7 @@ namespace Options{
             );
             ImGui::Text("Select the generation and display options");
             ImGui::SliderFloat("Scale", &scale, 0.01f, 1.0f);
-            ImGui::SliderFloat("Grid detaliztion", &detailiztion, 1.0f, 15.0f);
+            ImGui::SliderFloat("Grid detaliztion", &detailiztion, 1.0f, 14.9f);
             ImGui::SliderInt("Texture detaliztion", &texDetailiztion, 1, 25);
             ImGui::PushItemWidth(80); 
             ImGui::SliderInt("Heigh", &heigh, 5, 75);
