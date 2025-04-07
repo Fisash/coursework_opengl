@@ -23,7 +23,9 @@ Window::Window(int w, int h, const char* t) : width(w), height(h), title(t)
     }
 
     glfwMakeContextCurrent(window);
+
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
+
     Input::setWindow(this);
 
     glewExperimental = GL_TRUE;

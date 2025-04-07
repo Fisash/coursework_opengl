@@ -50,6 +50,8 @@ const char* fragmentShaderSource =  R"(#version 460 core
 
         uniform sampler2D ourTexture;
         
+        uniform int nonTexMod;
+
         out vec4 FragColor;
  
         void main() {
@@ -84,6 +86,11 @@ const char* fragmentShaderSource =  R"(#version 460 core
                 baseColor = (terrainColor + texColor.xyz);
             else if(texturingType == 0)
                 baseColor = terrainColor + (0.3f*texColor.xyz);
+
+            if (nonTexMod == 1){
+                baseColor = vec3(1.0, 1.0, 1.0);
+                brightness = 1.0;
+            }
             FragColor = vec4(baseColor*brightness, 1.0);
         })";
 
@@ -92,6 +99,7 @@ Window*  window = nullptr;
 Shader* shader = nullptr;
 Camera* mainCamera = nullptr;
 Mesh*  gridMesh = nullptr;
+Texture* testTex = nullptr;
 
 glm::vec3 terrainCenter(0, 0, 0); 
 
@@ -125,41 +133,48 @@ void input(float deltaTime){
 }
 
 void generateGrid(Mesh *&mesh){
+
+    testTex = new Texture(Options::width*Options::texDetailiztion, Options::heigh*Options::texDetailiztion, 0.15f);
+    testTex->bind();
+    shader->use();
+
     Grid grid(Options::width, Options::heigh, 1/Options::detailiztion);
     terrainCenter = glm::vec3(Options::width/2, -3.0f,Options::heigh/2); 
     mesh = new Mesh(grid.genGridVertices(), *shader);
     mesh->setIndices(grid.genGridIndices());
+
+    shader->setInt("nonTexMod", Options::isOnlyLines);
+    glPolygonMode( GL_FRONT_AND_BACK, Options::isOnlyLines ? GL_LINE : GL_FILL);
+}
+
+void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+    if(mainCamera->interactMovementMode)
+        Camera::mouseCallback(window, xpos, ypos);
 }
 
 int main() {
-    window = new Window(1000, 1000, "goida");
+    window = new Window(1000, 1000, "terrain generator");
     shader = new Shader(vertexShaderSource, fragmentShaderSource);
     mainCamera = new Camera(glm::vec3(0.0f, 3.0f, -5.0f));
-
-    //Texture testTex("data\\tex.jpg");
-    Texture testTex = Texture(512, 512, 0.15f);
-
 
     glClearColor(0.2f, 0.25f, 0.35f, 1.0f); 
     glEnable(GL_DEPTH_TEST);
 
-    testTex.bind();
-
     generateGrid(gridMesh);
-
-    //glfwSetWindowUserPointer(window.getGLFWWindowPtr(), &mainCamera);
-    //glfwSetCursorPosCallback(window.getGLFWWindowPtr(), Camera::mouseCallback);
 
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(60.0f), 1.0f, 0.15f, 100.0f);
-    shader->use();
     shader->setMat4("projection", projection);
 
     float lastFrameTime = 0.0f;
     float deltaTime = 0.0f;
-    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
+    float lastChangeCameraModeTime = 0.0f;
     Options::init(window);
+
+    glfwSetWindowUserPointer(window->getGLFWWindowPtr(), mainCamera);
+    glfwSetCursorPosCallback(window->getGLFWWindowPtr(), cursorPosCallback);
 
     while (!window->shouldClose()) {
         window->pollEvents();
@@ -176,6 +191,12 @@ int main() {
         if(mainCamera->interactMovementMode){
             input(deltaTime); 
             shader->setMat4("view", mainCamera->viewMatrix());
+            if(Input::getKey(GLFW_KEY_ENTER) && lastChangeCameraModeTime >= 0.5f){
+                glfwSetInputMode(window->getGLFWWindowPtr(), GLFW_CURSOR, GLFW_CURSOR_NORMAL); 
+                mainCamera->setDirection(0.0f, 0.0f);
+                mainCamera->interactMovementMode = false;
+                lastChangeCameraModeTime = 0.0f;
+            }
         }
         else{
             float radius = 10.0f; 
@@ -185,8 +206,17 @@ int main() {
             float camZ = terrainCenter.z + cos(time * 0.5f) * radius; 
             mainCamera->setPos(glm::vec3(camX, terrainCenter.y + height, camZ)); 
             shader->setMat4("view", mainCamera->viewMatrix(terrainCenter));
+
+            if(Input::getKey(GLFW_KEY_ENTER) && lastChangeCameraModeTime >= 0.5f){
+                mainCamera->setPos(glm::vec3(terrainCenter.x, terrainCenter.y + 3.0f, terrainCenter.z)); 
+                glfwSetInputMode(window->getGLFWWindowPtr(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
+                mainCamera->interactMovementMode = true;
+                lastChangeCameraModeTime = 0.0f;
+            }
+            
         }
 
+        lastChangeCameraModeTime += deltaTime;
         Options::render();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -204,6 +234,7 @@ int main() {
     delete shader;
     delete mainCamera;
     delete gridMesh;
+    delete testTex;
 
     return 0;
 }

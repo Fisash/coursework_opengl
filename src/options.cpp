@@ -17,10 +17,7 @@ namespace Options{
     }
 
     void render(){
-            glGetError();
-            glCreateShader(GL_VERTEX_SHADER);
-            int error = glGetError();
-            std::cout << error << std::endl;
+           
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -36,7 +33,8 @@ namespace Options{
             );
             ImGui::Text("Select the generation and display options");
             ImGui::SliderFloat("Scale", &scale, 0.01f, 1.0f);
-            ImGui::SliderFloat("Detaliztion", &detailiztion, 1.0f, 80.0f);
+            ImGui::SliderFloat("Grid detaliztion", &detailiztion, 1.0f, 15.0f);
+            ImGui::SliderInt("Texture detaliztion", &texDetailiztion, 1, 25);
             ImGui::PushItemWidth(80); 
             ImGui::SliderInt("Heigh", &heigh, 5, 75);
             ImGui::SameLine();
@@ -46,6 +44,7 @@ namespace Options{
             if (ImGui::Button("Regenerate")){
                 isShouldRegen = true;
             }
+            ImGui::Text("Press Enter to change the camera mode (controlled free flight/fixed rotation)");
             ImGui::End();
             ImGui::PopStyleVar(); 
             ImGui::Render();
@@ -59,6 +58,7 @@ namespace Options{
 
     float scale = 0.2f;
     float detailiztion = 4.0f;
+    int texDetailiztion = 4;
     int heigh = 10;
     int width = 10;
 

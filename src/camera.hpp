@@ -24,7 +24,7 @@ class Camera{
 
         public:
             bool interactMovementMode = false;
-            
+
             Camera(glm::vec3 pos, float yaw = 90.0f, float pitch = 0.0f);
 
             glm::mat4 viewMatrix();

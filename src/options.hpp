@@ -8,6 +8,7 @@
 namespace Options{
         extern float scale;
         extern float detailiztion;
+        extern int texDetailiztion;
         extern int heigh;
         extern int width;
         extern bool isOnlyLines;

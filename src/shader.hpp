@@ -17,4 +17,5 @@ public:
     void use() const;
     void setMat4(const char* name, glm::mat4 mat);
     void setFloat(const char* name, float val);
+    void setInt(const char* name, int val);
 };

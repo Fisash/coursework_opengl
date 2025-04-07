@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include <iostream>
 
 Camera::Camera(glm::vec3 pos, float yaw, float pitch){
     position = pos;
@@ -67,6 +68,9 @@ void Camera::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
         // Получаем указатель на камеру из user pointer
         Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
         
+        if (!camera)
+            throw std::runtime_error("Dimon is not eblan but this message are not ever show");
+
         static float lastX = xpos;
         static float lastY = ypos;
 
