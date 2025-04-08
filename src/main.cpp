@@ -34,10 +34,25 @@ const char* vertexShaderSource =  R"(#version 460 core
         uniform mat4 view;
         uniform mat4 projection;
 
+        uniform float time;
+
+        uniform bool wavesEnabled;   
+        uniform float waveAmplitude;   
+        uniform float waveSpeed;       
+        uniform float waveFrequency;
+
         void main()
         {
-            vec4 worldPos = view * model * vec4(aPos, 1.0);
             h = aPos.y;
+            vec3 pos = aPos.xyz;
+            if(h < 0.15) {
+                if(wavesEnabled) {
+                    pos.y = 0.10 + waveAmplitude * ( sin(aPos.x * waveFrequency + time * waveSpeed) 
+                                                    + cos(aPos.z * waveFrequency + time * waveSpeed) );
+                }else 
+                    pos.y = 0.145;
+            }
+            vec4 worldPos = view * model * vec4(pos, 1.0);
             gl_Position = projection * worldPos;
             TexCoord = aTexCoord;
             FragDepth = -worldPos.z; // Используем отрицательное значение, т.к. OpenGL использует правостороннюю систему координат
@@ -144,6 +159,10 @@ void generateGrid(Mesh *&mesh){
     mesh->setIndices(grid.genGridIndices());
 
     shader->setInt("nonTexMod", Options::isOnlyLines);
+    shader->setInt("wavesEnabled", Options::isDrawWaterWaves);
+    shader->setFloat("waveAmplitude", Options::waveAmplitude);
+    shader->setFloat("waveSpeed", Options::waveSpeed);
+    shader->setFloat("waveFrequency", Options::waveFrequency);
     glPolygonMode( GL_FRONT_AND_BACK, Options::isOnlyLines ? GL_LINE : GL_FILL);
 }
 

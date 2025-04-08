@@ -41,6 +41,12 @@ namespace Options{
             ImGui::PushItemWidth(80); 
             ImGui::SliderInt("Width", &width, 5, 75);
             ImGui::Checkbox("Draw only lines", &isOnlyLines);
+            ImGui::Checkbox("Draw water waves", &isDrawWaterWaves);
+            if(isDrawWaterWaves){
+                ImGui::SliderFloat("Wave amplitude", &waveAmplitude, 0.01f, 0.5f);
+                ImGui::SliderFloat("Wave frequency", &waveFrequency, 0.5f, 10.0f);
+                ImGui::SliderFloat("Wave speed", &waveSpeed, 0.5f, 10.0f);
+            }
             if (ImGui::Button("Regenerate")){
                 isShouldRegen = true;
             }
@@ -61,6 +67,12 @@ namespace Options{
     int texDetailiztion = 4;
     int heigh = 10;
     int width = 10;
+
+    bool isDrawWaterWaves = false;
+
+    float waveAmplitude = 0.06f;   
+    float waveSpeed = 1.0f;       
+    float waveFrequency = 1.0f;
 
     bool isOnlyLines = false;
     bool isShouldRegen = true;

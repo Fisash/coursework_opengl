@@ -13,6 +13,12 @@ namespace Options{
         extern int width;
         extern bool isOnlyLines;
 
+        extern bool isDrawWaterWaves;
+
+        extern float waveAmplitude;   
+        extern float waveSpeed;       
+        extern float waveFrequency;
+
         extern bool isShouldRegen;
 
         void init(Window* window);
